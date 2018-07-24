@@ -1,0 +1,18 @@
+stages:
+ - sync
+ 
+sync to codecommit:
+  stage: sync
+  variables:
+    SOURCE_REPO: 'git@gitlab.foobar.local:repository.git'
+    CODECOMMIT_REPO_URL: 'ssh://git-codecommit.eu-west-1.amazonaws.com/v1/repos/repository'
+  script:
+    - umask 077
+    - export TEMP_DIRECTORY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+    - if [[ -z "$TEMP_DIRECTORY" ]]; then exit 1; fi # Fail if TEMP_DIRECTORY is empty
+    - git clone --mirror $SOURCE_REPO $TEMP_DIRECTORY
+    - cd $TEMP_DIRECTORY
+    - git branch -a
+    - git push --mirror $CODECOMMIT_REPO_URL
+    - cd ..
+    - rm -rf $TEMP_DIRECTORY
